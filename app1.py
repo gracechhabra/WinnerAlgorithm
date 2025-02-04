@@ -30,7 +30,7 @@ credentials = ServiceAccountCredentials.from_json_keyfile_name(credentials_path,
 #Authorizing the file and opening the workbook
 file = gspread.authorize(credentials)
 workbook = file.open("Test")
-sheet = workbook.sheet1
+sheet = workbook.get_worksheet(1)
 
 #Accessing the data and making a data frame
 data = sheet.get_all_records()
