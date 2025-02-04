@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Winner Details</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
+    <script>
+        // --- Fetch functions ---
+    
+        // Fetch Top Three Per School and render separate tables by school.
+        function fetchTopThreePerSchool() {
+          fetch('/get_top_three_per_school')
+            .then(response => response.json())
+            .then(data => {
+              const perSchoolDiv = document.getElementById("perSchoolResult");
+              perSchoolDiv.innerHTML = ""; // Clear previous content
+    
+              // Group results by school.
+              const schools = {};
+              data.forEach(item => {
+                if (!schools[item.school]) {
+                  schools[item.school] = [];
+                }
+                schools[item.school].push(item);
+              });
+    
+              // For each school, create a header and a table.
+              for (const school in schools) {
+                perSchoolDiv.innerHTML += `<h2>${school}</h2>`;
+                perSchoolDiv.innerHTML += `
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Name</th>
+                        <th>Correct Answers</th>
+                        <th>Answered</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody_${school.replace(/\s+/g, '_')}">
+                    </tbody>
+                  </table>
+                `;
+                const tbody = document.getElementById("tbody_" + school.replace(/\s+/g, '_'));
+                schools[school].forEach(winner => {
+                  tbody.innerHTML += `
+                    <tr>
+                      <td>${winner.name}</td>
+                      <td>${winner.correct}</td>
+                      <td>${winner.answered}</td>
+                    </tr>
+                  `;
+                });
+              }
+            })
+            .catch(error => console.error("Error fetching per school winners:", error));
+        }
+    
+        // Fetch Overall Top Three and render in one table.
+        function fetchOverallTopThree() {
+          fetch('/get_overall_top_three')
+            .then(response => response.json())
+            .then(data => {
+              const overallDiv = document.getElementById("overallResult");
+              overallDiv.innerHTML = ""; // Clear previous content
+    
+              overallDiv.innerHTML += `
+                <table>
+                  <thead>
+                    <tr>
+                      <th>School</th>
+                      <th>Name</th>
+                      <th>Correct Answers</th>
+                      <th>Answered</th>
+                    </tr>
+                  </thead>
+                  <tbody id="overallTableBody">
+                  </tbody>
+                </table>
+              `;
+              const tbody = document.getElementById("overallTableBody");
+              data.forEach(winner => {
+                tbody.innerHTML += `
+                  <tr>
+                    <td>${winner.school}</td>
+                    <td>${winner.name}</td>
+                    <td>${winner.correct}</td>
+                    <td>${winner.answered}</td>
+                  </tr>
+                `;
+              });
+            })
+            .catch(error => console.error("Error fetching overall winners:", error));
+        }
+    
+        // --- Tab Switching ---
+        function showTab(tabName) {
+          // Hide both content sections
+          document.getElementById("perSchoolResult").style.display = "none";
+          document.getElementById("overallResult").style.display = "none";
+          // Remove active class from both tabs
+          document.getElementById("tabPerSchool").classList.remove("active");
+          document.getElementById("tabOverall").classList.remove("active");
+    
+          // Show the selected tab and add active class
+          if (tabName === "perSchool") {
+            document.getElementById("perSchoolResult").style.display = "block";
+            document.getElementById("tabPerSchool").classList.add("active");
+          } else if (tabName === "overall") {
+            document.getElementById("overallResult").style.display = "block";
+            document.getElementById("tabOverall").classList.add("active");
+          }
+        }
+    
+        // When the page loads, show the per-school tab and fetch its data.
+        window.onload = function() {
+          showTab("perSchool");
+          fetchTopThreePerSchool();
+        };
+      </script>
+</head>
+<body>
+  <header>
+    <h1>Top Scorers Dashboard</h1>
+  </header>
+
+  <!-- Tab Navigation -->
+  <div class="tabs">
+    <div id="tabPerSchool" class="tab active" onclick="showTab('perSchool'); fetchTopThreePerSchool();">
+      Top Three Per School
+    </div>
+    <div id="tabOverall" class="tab" onclick="showTab('overall'); fetchOverallTopThree();">
+      Overall Top Three
+    </div>
+  </div>
+
+  <!-- Content Container -->
+  <div class="content">
+    <!-- Per-School Results -->
+    <div id="perSchoolResult"></div>
+    <!-- Overall Results (hidden by default) -->
+    <div id="overallResult" style="display: none;"></div>
+  </div>
+</body>
+</html>
