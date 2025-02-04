@@ -19,6 +19,7 @@ scopes = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapi
 
 #Getting the credentials
 credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+#print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) - accessing the keys
 
 #Exception if it is not the credential path
 if not credentials_path:
