@@ -81,3 +81,38 @@ body {
   #perSchoolResult{
     text-align: center;
   }
+
+  #schoolDropdown {
+    width: 300px;              /* Adjust the width as needed */
+    padding: 20px;
+    color: #333;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23333" height="12" viewBox="0 0 24 24" width="12" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 12px;
+    text-align: left;
+  }
+
+  #schoolDropdownContainer select:hover {
+    border-color: #888;
+  }
+  
+  #schoolDropdownContainer select:focus {
+    outline: none;
+    border-color: #6a5acd;
+    box-shadow: 0 0 5px rgba(106, 90, 205, 0.5);
+  }
+
+  #schoolDropdown option {
+    font-weight: bold;
+    /* 
+       Note: While font-weight is generally supported,
+       text alignment on <option> elements can be inconsistent.
+       The select's text-align and text-align-last properties typically
+       control the display of the selected option when the dropdown is closed.
+    */
+    text-align: left; /* This will align the text within the dropdown list items */
+  }
