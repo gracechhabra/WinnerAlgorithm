@@ -27,36 +27,106 @@
                 schools[item.school].push(item);
               });
     
-              // For each school, create a header and a table.
-              for (const school in schools) {
-                perSchoolDiv.innerHTML += `<h2>${school}</h2>`;
-                perSchoolDiv.innerHTML += `
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Name</th>
-                        <th>Correct Answers</th>
-                        <th>Answered</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tbody_${school.replace(/\s+/g, '_')}">
-                    </tbody>
-                  </table>
-                `;
-                const tbody = document.getElementById("tbody_" + school.replace(/\s+/g, '_'));
-                schools[school].forEach(winner => {
-                  tbody.innerHTML += `
-                    <tr>
-                      <td>${winner.name}</td>
-                      <td>${winner.correct}</td>
-                      <td>${winner.answered}</td>
-                    </tr>
-                  `;
-                });
-              }
-            })
-            .catch(error => console.error("Error fetching per school winners:", error));
-        }
+            // --- Create the Dropdown for School Selection ---
+      // Create (or select) a container for the dropdown
+      let dropdownDiv = document.getElementById("schoolDropdownContainer");
+      if (!dropdownDiv) {
+        dropdownDiv = document.createElement("div");
+        dropdownDiv.id = "schoolDropdownContainer";
+        perSchoolDiv.appendChild(dropdownDiv);
+      }
+      dropdownDiv.innerHTML = ""; // Clear any previous dropdown
+
+      // Create the <select> element
+      const selectDropdown = document.createElement("select");
+      selectDropdown.id = "schoolDropdown";
+
+      // Add a default option for showing all schools
+      const defaultOption = document.createElement("option");
+      defaultOption.value = "all";
+      defaultOption.textContent = "All Schools";
+      selectDropdown.appendChild(defaultOption);
+
+      // Add an option for each school.
+      for (const school in schools) {
+        const option = document.createElement("option");
+        // We “sanitize” the school name for use as an ID (replace spaces with underscores)
+        option.value = school.replace(/\s+/g, '_');
+        option.textContent = school;
+        selectDropdown.appendChild(option);
+      }
+      dropdownDiv.appendChild(selectDropdown);
+
+      // --- Create a Container for the School Tables ---
+      // This container will hold one div per school.
+      const tablesContainer = document.createElement("div");
+      tablesContainer.id = "tablesContainer";
+      perSchoolDiv.appendChild(tablesContainer);
+
+      // --- Build Each School’s Table ---
+      for (const school in schools) {
+        const sanitizedSchool = school.replace(/\s+/g, '_');
+
+        // Create a wrapping div for the school’s table.
+        const schoolDiv = document.createElement("div");
+        schoolDiv.classList.add("school-table");
+        schoolDiv.id = "school_" + sanitizedSchool;
+
+        // Create and append a header for the school.
+        const header = document.createElement("h2");
+        header.textContent = school;
+        schoolDiv.appendChild(header);
+
+        // Create the table.
+        const table = document.createElement("table");
+
+        // Create the table header.
+        const thead = document.createElement("thead");
+        thead.innerHTML = `
+          <tr>
+            <th>Name</th>
+            <th>Correct Answers</th>
+            <th>Answered</th>
+          </tr>`;
+        table.appendChild(thead);
+
+        // Create the table body.
+        const tbody = document.createElement("tbody");
+        schools[school].forEach(winner => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${winner.name}</td>
+            <td>${winner.correct}</td>
+            <td>${winner.answered}</td>`;
+          tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+
+        // Append the table to the school container.
+        schoolDiv.appendChild(table);
+        // Append the school container to the tables container.
+        tablesContainer.appendChild(schoolDiv);
+      }
+
+      // --- Add an Event Listener to the Dropdown ---
+      // When the dropdown value changes, show/hide the school tables.
+      selectDropdown.addEventListener("change", function() {
+        const selectedValue = this.value;
+        // For each school table, toggle its visibility.
+        document.querySelectorAll('.school-table').forEach(div => {
+          if (selectedValue === "all" || div.id === "school_" + selectedValue) {
+            div.style.display = "";
+          } else {
+            div.style.display = "none";
+          }
+        });
+      });
+
+      // Optionally, trigger a change event to set the initial view.
+      selectDropdown.dispatchEvent(new Event("change"));
+    })
+    .catch(error => console.error("Error fetching per school winners:", error));
+}
     
         // Fetch Overall Top Three and render in one table.
         function fetchOverallTopThree() {

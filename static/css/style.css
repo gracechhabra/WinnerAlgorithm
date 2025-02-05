@@ -57,6 +57,11 @@ body {
     background: rgb(206, 75, 97);
     color: #fff;
   }
+
+  .school-section{
+    margin-bottom: 20px;
+  }
+  
   h2 {
     margin-top: 30px;
   }
