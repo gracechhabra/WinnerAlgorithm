@@ -9,7 +9,7 @@
 
     <script>
         // --- Fetch functions ---
-    
+
         // Fetch Top Three Per School and render separate tables by school.
         function fetchTopThreePerSchool() {
           fetch('/get_top_three_per_school')
@@ -127,6 +127,9 @@
     })
     .catch(error => console.error("Error fetching per school winners:", error));
 }
+
+setInterval(fetchTopThreePerSchool, 2000);
+
     
         // Fetch Overall Top Three and render in one table.
         function fetchOverallTopThree() {
@@ -164,6 +167,7 @@
             })
             .catch(error => console.error("Error fetching overall winners:", error));
         }
+        setInterval(fetchOverallTopThree, 2000);
     
         // --- Tab Switching ---
         function showTab(tabName) {
