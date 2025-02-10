@@ -1,6 +1,7 @@
 #Finding the winner using Google Sheets API
 
 from flask import Flask, render_template, jsonify
+from flask_socketio import SocketIO
 import pandas as pd
 import gspread
 import os
@@ -8,7 +9,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 
 app = Flask(__name__)
-
+socketio = SocketIO(app)
 
 #Pandas to display all the lines
 pd.set_option('display.max_rows', None)
@@ -47,6 +48,11 @@ max_rows = grouped.apply(lambda group: group.loc[group['correct'].idxmax()]).res
 print("Students with the maximum correct answers for each school:")
 print(max_rows)
 '''
+
+def fetch_data():
+    """Fetch the latest data from Google Sheets."""
+    data = sheet.get_all_records()  # Always get the latest data
+    return pd.DataFrame(data)
 
 
 #Function to get the maximum correct answers, if it is tied then see the most correct answers
@@ -127,6 +133,7 @@ overall_top_three = get_overall_top_three(df)
 print("\nOverall Top Three Toppers from all schools:")
 print(overall_top_three[['name', 'school', 'correct', 'answered']])
 
+
 # Route to render index.html
 @app.route('/')
 def home():
@@ -135,6 +142,7 @@ def home():
 # Endpoint: Get top three scorers per school
 @app.route('/get_top_three_per_school', methods=['GET'])
 def get_top_three_per_school():
+    df = fetch_data() #Fetch latest data every time
     grouped = df.groupby('school')
     top_three_per_school = grouped.apply(get_top_three).reset_index(drop=True)
     # Select only the required columns and convert to list of dictionaries.
@@ -144,6 +152,7 @@ def get_top_three_per_school():
 # Endpoint: Get overall top three scorers from all schools
 @app.route('/get_overall_top_three', methods=['GET'])
 def get_overall_top_three_endpoint():
+    df = fetch_data()
     overall_top_three_df = get_overall_top_three(df)
     data = overall_top_three_df[['name', 'school', 'correct', 'answered']].to_dict(orient='records')
     return jsonify(data)
