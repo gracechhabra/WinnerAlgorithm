@@ -36,11 +36,11 @@ sheet = workbook.get_worksheet(0)
 #Accessing the data and making a data frame
 data = sheet.get_all_records()
 df = pd.DataFrame(data)
-headers = ['name', 'school', 'correct']  # Manually define headers
+headers = ['name', 'grade', 'correct']  # Manually define headers
 
 
 # Group by the "School" column
-grouped = df.groupby('school')
+grouped = df.groupby('grade')
 
 
 '''
@@ -122,16 +122,16 @@ def get_overall_top_three(df):
 
 # === Part 1: Top three scorers per school ===
 # Group by 'school' and apply the get_top_three function.
-grouped = df.groupby('school')
+grouped = df.groupby('grade')
 top_three_per_school = grouped.apply(get_top_three).reset_index(drop=True)
 
-print("Top three scorers for each school:")
-print(top_three_per_school[['name', 'school', 'correct', 'answered']])
+print("Top three scorers for each grade:")
+print(top_three_per_school[['name', 'grade', 'answered', 'correct']])
 
 # === Part 2: Overall top three scorers from all schools ===
 overall_top_three = get_overall_top_three(df)
-print("\nOverall Top Three Toppers from all schools:")
-print(overall_top_three[['name', 'school', 'correct', 'answered']])
+print("\nOverall Top Three Toppers from each grade:")
+print(overall_top_three[['name', 'grade', 'answered', 'correct']])
 
 
 # Route to render index.html
@@ -140,13 +140,13 @@ def home():
     return render_template("index.html")
 
 # Endpoint: Get top three scorers per school
-@app.route('/get_top_three_per_school', methods=['GET'])
+@app.route('/get_top_three_per_school', methods=['GET']) 
 def get_top_three_per_school():
     df = fetch_data() #Fetch latest data every time
-    grouped = df.groupby('school')
+    grouped = df.groupby('grade')
     top_three_per_school = grouped.apply(get_top_three).reset_index(drop=True)
     # Select only the required columns and convert to list of dictionaries.
-    data = top_three_per_school[['name', 'school', 'correct', 'answered']].to_dict(orient='records')
+    data = top_three_per_school[['name', 'grade', 'answered', 'correct']].to_dict(orient='records')
     return jsonify(data)
 
 # Endpoint: Get overall top three scorers from all schools
@@ -154,7 +154,7 @@ def get_top_three_per_school():
 def get_overall_top_three_endpoint():
     df = fetch_data()
     overall_top_three_df = get_overall_top_three(df)
-    data = overall_top_three_df[['name', 'school', 'correct', 'answered']].to_dict(orient='records')
+    data = overall_top_three_df[['name', 'grade', 'answered', 'correct']].to_dict(orient='records')
     return jsonify(data)
 
 if __name__ == '__main__':

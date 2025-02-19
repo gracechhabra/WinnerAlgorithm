@@ -78,11 +78,11 @@ body {
     background: #0056b3;
   }
 
-  #perSchoolResult{
+  #perGradeResult{
     text-align: center;
   }
 
-  #schoolDropdown {
+  #gradeDropdown {
     width: 300px;              /* Adjust the width as needed */
     padding: 20px;
     color: #333;

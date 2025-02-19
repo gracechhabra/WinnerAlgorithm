@@ -10,190 +10,189 @@
     <script>
         // --- Fetch functions ---
 
-        // Fetch Top Three Per School and render separate tables by school.
-        function fetchTopThreePerSchool() {
-          fetch('/get_top_three_per_school')
-            .then(response => response.json())
-            .then(data => {
-              const perSchoolDiv = document.getElementById("perSchoolResult");
-              perSchoolDiv.innerHTML = ""; // Clear previous content
-    
-              // Group results by school.
-              const schools = {};
-              data.forEach(item => {
-                if (!schools[item.school]) {
-                  schools[item.school] = [];
-                }
-                schools[item.school].push(item);
-              });
-    
-            // --- Create the Dropdown for School Selection ---
-      // Create (or select) a container for the dropdown
-      let dropdownDiv = document.getElementById("schoolDropdownContainer");
-      if (!dropdownDiv) {
-        dropdownDiv = document.createElement("div");
-        dropdownDiv.id = "schoolDropdownContainer";
-        perSchoolDiv.appendChild(dropdownDiv);
-      }
-      dropdownDiv.innerHTML = ""; // Clear any previous dropdown
+        function fetchTopThreePerGrade() {
+      fetch('/get_top_three_per_school')  // Endpoint remains the same; ensure it returns a "grade" property
+        .then(response => response.json())
+        .then(data => {
+          const perGradeDiv = document.getElementById("perGradeResult");
+          perGradeDiv.innerHTML = ""; // Clear previous content
 
-      // Create the <select> element
-      const selectDropdown = document.createElement("select");
-      selectDropdown.id = "schoolDropdown";
+          // Group results by grade instead of school.
+          const grades = {};
+          data.forEach(item => {
+            // Assuming each data item has a "grade" property.
+            if (!grades[item.grade]) {
+              grades[item.grade] = [];
+            }
+            grades[item.grade].push(item);
+          });
 
-      // Add a default option for showing all schools
-      const defaultOption = document.createElement("option");
-      defaultOption.value = "all";
-      defaultOption.textContent = "All Schools";
-      selectDropdown.appendChild(defaultOption);
-
-      // Add an option for each school.
-      for (const school in schools) {
-        const option = document.createElement("option");
-        // We “sanitize” the school name for use as an ID (replace spaces with underscores)
-        option.value = school.replace(/\s+/g, '_');
-        option.textContent = school;
-        selectDropdown.appendChild(option);
-      }
-      dropdownDiv.appendChild(selectDropdown);
-
-      // --- Create a Container for the School Tables ---
-      // This container will hold one div per school.
-      const tablesContainer = document.createElement("div");
-      tablesContainer.id = "tablesContainer";
-      perSchoolDiv.appendChild(tablesContainer);
-
-      // --- Build Each School’s Table ---
-      for (const school in schools) {
-        const sanitizedSchool = school.replace(/\s+/g, '_');
-
-        // Create a wrapping div for the school’s table.
-        const schoolDiv = document.createElement("div");
-        schoolDiv.classList.add("school-table");
-        schoolDiv.id = "school_" + sanitizedSchool;
-
-        // Create and append a header for the school.
-        const header = document.createElement("h2");
-        header.textContent = school;
-        schoolDiv.appendChild(header);
-
-        // Create the table.
-        const table = document.createElement("table");
-
-        // Create the table header.
-        const thead = document.createElement("thead");
-        thead.innerHTML = `
-          <tr>
-            <th>Name</th>
-            <th>Correct Answers</th>
-            <th>Answered</th>
-          </tr>`;
-        table.appendChild(thead);
-
-        // Create the table body.
-        const tbody = document.createElement("tbody");
-        schools[school].forEach(winner => {
-          const row = document.createElement("tr");
-          row.innerHTML = `
-            <td>${winner.name}</td>
-            <td>${winner.correct}</td>
-            <td>${winner.answered}</td>`;
-          tbody.appendChild(row);
-        });
-        table.appendChild(tbody);
-
-        // Append the table to the school container.
-        schoolDiv.appendChild(table);
-        // Append the school container to the tables container.
-        tablesContainer.appendChild(schoolDiv);
-      }
-
-      // --- Add an Event Listener to the Dropdown ---
-      // When the dropdown value changes, show/hide the school tables.
-      selectDropdown.addEventListener("change", function() {
-        const selectedValue = this.value;
-        // For each school table, toggle its visibility.
-        document.querySelectorAll('.school-table').forEach(div => {
-          if (selectedValue === "all" || div.id === "school_" + selectedValue) {
-            div.style.display = "";
-          } else {
-            div.style.display = "none";
+          // --- Create the Dropdown for Grade Selection ---
+          // Create (or select) a container for the dropdown.
+          let dropdownDiv = document.getElementById("gradeDropdownContainer");
+          if (!dropdownDiv) {
+            dropdownDiv = document.createElement("div");
+            dropdownDiv.id = "gradeDropdownContainer";
+            perGradeDiv.appendChild(dropdownDiv);
           }
-        });
-      });
+          dropdownDiv.innerHTML = ""; // Clear any previous dropdown
 
-      // Optionally, trigger a change event to set the initial view.
-      selectDropdown.dispatchEvent(new Event("change"));
-    })
-    .catch(error => console.error("Error fetching per school winners:", error));
-}
+          // Create the <select> element for grades.
+          const selectDropdown = document.createElement("select");
+          selectDropdown.id = "gradeDropdown";
 
-setInterval(fetchTopThreePerSchool, 10000);
+          // Add a default option for showing all grades.
+          const defaultOption = document.createElement("option");
+          defaultOption.value = "all";
+          defaultOption.textContent = "All Grades";
+          selectDropdown.appendChild(defaultOption);
 
-    
-        // Fetch Overall Top Three and render in one table.
-        function fetchOverallTopThree() {
-          fetch('/get_overall_top_three')
-            .then(response => response.json())
-            .then(data => {
-              const overallDiv = document.getElementById("overallResult");
-              overallDiv.innerHTML = ""; // Clear previous content
-    
-              overallDiv.innerHTML += `
-                <table>
-                  <thead>
-                    <tr>
-                      <th>School</th>
-                      <th>Name</th>
-                      <th>Answered</th>
-                      <th>Correct Answers</th>
-                    </tr>
-                  </thead>
-                  <tbody id="overallTableBody">
-                  </tbody>
-                </table>
-              `;
-              const tbody = document.getElementById("overallTableBody");
-              data.forEach(winner => {
-                tbody.innerHTML += `
-                  <tr>
-                    <td>${winner.school}</td>
-                    <td>${winner.name}</td>
-                    <td>${winner.answered}</td>
-                    <td>${winner.correct}</td>
-                  </tr>
-                `;
-              });
-            })
-            .catch(error => console.error("Error fetching overall winners:", error));
-        }
-        setInterval(fetchOverallTopThree, 10000);
-    
-        // --- Tab Switching ---
-        function showTab(tabName) {
-          // Hide both content sections
-          document.getElementById("perSchoolResult").style.display = "none";
-          document.getElementById("overallResult").style.display = "none";
-          // Remove active class from both tabs
-          document.getElementById("tabPerSchool").classList.remove("active");
-          document.getElementById("tabOverall").classList.remove("active");
-    
-          // Show the selected tab and add active class
-          if (tabName === "perSchool") {
-            document.getElementById("perSchoolResult").style.display = "block";
-            document.getElementById("tabPerSchool").classList.add("active");
-          } else if (tabName === "overall") {
-            document.getElementById("overallResult").style.display = "block";
-            document.getElementById("tabOverall").classList.add("active");
+          // Add an option for each grade.
+          for (const grade in grades) {
+            const option = document.createElement("option");
+            // Sanitize the grade value for use as an ID.
+            option.value = grade.replace(/\s+/g, '_');
+            option.textContent = grade;
+            selectDropdown.appendChild(option);
           }
-        }
-    
-        // When the page loads, show the per-school tab and fetch its data.
-        window.onload = function() {
-          showTab("perSchool");
-          fetchTopThreePerSchool();
-        };
-      </script>
+          dropdownDiv.appendChild(selectDropdown);
+
+          // --- Create a Container for the Grade Tables ---
+          // This container will hold one div per grade.
+          const tablesContainer = document.createElement("div");
+          tablesContainer.id = "tablesContainer";
+          perGradeDiv.appendChild(tablesContainer);
+
+          // --- Build Each Grade’s Table ---
+          for (const grade in grades) {
+            const sanitizedGrade = grade.replace(/\s+/g, '_');
+
+            // Create a wrapping div for the grade’s table.
+            const gradeDiv = document.createElement("div");
+            gradeDiv.classList.add("grade-table");
+            gradeDiv.id = "grade_" + sanitizedGrade;
+
+            // Create and append a header for the grade.
+            const header = document.createElement("h2");
+            header.textContent = grade;
+            gradeDiv.appendChild(header);
+
+            // Create the table.
+            const table = document.createElement("table");
+
+            // Create the table header with 'Answered' first then 'Correct Answers'
+            const thead = document.createElement("thead");
+            thead.innerHTML = `
+              <tr>
+                <th>Name</th>
+                <th>Answered</th>
+                <th>Correct Answers</th>
+              </tr>`;
+            table.appendChild(thead);
+
+            // Create the table body.
+            const tbody = document.createElement("tbody");
+            grades[grade].forEach(winner => {
+              const row = document.createElement("tr");
+              row.innerHTML = `
+                <td>${winner.name}</td>
+                <td>${winner.answered}</td>
+                <td>${winner.correct}</td>`;
+              tbody.appendChild(row);
+            });
+            table.appendChild(tbody);
+
+            // Append the table to the grade container.
+            gradeDiv.appendChild(table);
+            // Append the grade container to the tables container.
+            tablesContainer.appendChild(gradeDiv);
+          }
+
+          // --- Add an Event Listener to the Dropdown ---
+          // When the dropdown value changes, show/hide the grade tables.
+          selectDropdown.addEventListener("change", function() {
+            const selectedValue = this.value;
+            document.querySelectorAll('.grade-table').forEach(div => {
+              if (selectedValue === "all" || div.id === "grade_" + selectedValue) {
+                div.style.display = "";
+              } else {
+                div.style.display = "none";
+              }
+            });
+          });
+
+          // Optionally, trigger a change event to set the initial view.
+          selectDropdown.dispatchEvent(new Event("change"));
+        })
+        .catch(error => console.error("Error fetching per grade winners:", error));
+    }
+
+    // Fetch Overall Top Three and render in one table.
+    function fetchOverallTopThree() {
+      fetch('/get_overall_top_three')
+        .then(response => response.json())
+        .then(data => {
+          const overallDiv = document.getElementById("overallResult");
+          overallDiv.innerHTML = ""; // Clear previous content
+
+          overallDiv.innerHTML += `
+            <table>
+              <thead>
+                <tr>
+                  <th>Grade</th>
+                  <th>Name</th>
+                  <th>Answered</th>
+                  <th>Correct Answers</th>
+                </tr>
+              </thead>
+              <tbody id="overallTableBody">
+              </tbody>
+            </table>
+          `;
+          const tbody = document.getElementById("overallTableBody");
+          data.forEach(winner => {
+            tbody.innerHTML += `
+              <tr>
+                <td>${winner.grade}</td>
+                <td>${winner.name}</td>
+                <td>${winner.answered}</td>
+                <td>${winner.correct}</td>
+              </tr>
+            `;
+          });
+        })
+        .catch(error => console.error("Error fetching overall winners:", error));
+    }
+
+    // --- Tab Switching ---
+    function showTab(tabName) {
+      // Hide both content sections.
+      document.getElementById("perGradeResult").style.display = "none";
+      document.getElementById("overallResult").style.display = "none";
+      // Remove active class from both tabs.
+      document.getElementById("tabPerGrade").classList.remove("active");
+      document.getElementById("tabOverall").classList.remove("active");
+
+      // Show the selected tab and add active class.
+      if (tabName === "perGrade") {
+        document.getElementById("perGradeResult").style.display = "block";
+        document.getElementById("tabPerGrade").classList.add("active");
+      } else if (tabName === "overall") {
+        document.getElementById("overallResult").style.display = "block";
+        document.getElementById("tabOverall").classList.add("active");
+      }
+    }
+
+    // When the page loads, show the per-grade tab and fetch its data.
+    window.onload = function() {
+      showTab("perGrade");
+      fetchTopThreePerGrade();
+    };
+
+    // Refresh the per-grade and overall data every 10 seconds.
+    setInterval(fetchTopThreePerGrade, 10000);
+    setInterval(fetchOverallTopThree, 10000);
+  </script>
 </head>
 <body>
   <header>
@@ -202,8 +201,8 @@ setInterval(fetchTopThreePerSchool, 10000);
 
   <!-- Tab Navigation -->
   <div class="tabs">
-    <div id="tabPerSchool" class="tab active" onclick="showTab('perSchool'); fetchTopThreePerSchool();">
-      Top Three Per School
+    <div id="tabPerGrade" class="tab active" onclick="showTab('perGrade'); fetchTopThreePerGrade();">
+      Top Three Per Grade
     </div>
     <div id="tabOverall" class="tab" onclick="showTab('overall'); fetchOverallTopThree();">
       Overall Top Three
@@ -212,8 +211,8 @@ setInterval(fetchTopThreePerSchool, 10000);
 
   <!-- Content Container -->
   <div class="content">
-    <!-- Per-School Results -->
-    <div id="perSchoolResult"></div>
+    <!-- Per-Grade Results -->
+    <div id="perGradeResult"></div>
     <!-- Overall Results (hidden by default) -->
     <div id="overallResult" style="display: none;"></div>
   </div>
